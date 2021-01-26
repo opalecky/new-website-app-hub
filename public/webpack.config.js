@@ -116,7 +116,7 @@ module.exports = {
                     output: {
                         comments: false
                     },
-                    sourceMap: false
+                    sourceMap: true
                 }
             }),
             new CssMinimizer({

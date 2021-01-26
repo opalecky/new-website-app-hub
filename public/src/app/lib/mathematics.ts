@@ -9,4 +9,7 @@ export default class Mathematics {
 	public static pythagoras(distances:number[]) {
 		return Math.pow(Mathematics.squaredSum(distances),1/distances.length);
 	}
+	public static linearMapping(value, min, max) {
+		return (value-min)/(max-min);
+	}
 }
