@@ -24,5 +24,8 @@
     "nodemailer": "^6.4.14",
     "pug": "^3.0.0",
     "uglify-js": "^3.12.5"
+  },
+  "devDependencies": {
+    "@webpack-cli/init": "^1.1.2"
   }
 }
