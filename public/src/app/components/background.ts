@@ -7,6 +7,9 @@ import { Circle, Shape2D } from '../lib/geometry';
 
 const canvas = $( "#background canvas" )[ 0 ] as HTMLCanvasElement;
 const ctx = canvas.getContext( '2d' );
+$(window).on('resize', ()=>{
+	$(canvas).attr('width', window.innerWidth).attr('height', window.innerHeight);
+});
 
 export enum BACKGROUND_TYPES {
 	BUBBLES,
@@ -75,8 +78,8 @@ export default class Background {
 	private particles = [];
 
 	constructor ( props : BackgroundProps ) {
-		canvas.width = window.innerWidth * window.devicePixelRatio;
-		canvas.height = window.innerHeight * window.devicePixelRatio;
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
 		this.app = props.app;
 		this.type = props.type;
 		this.app.registerUpdateFunction( this.draw.bind( this ) );

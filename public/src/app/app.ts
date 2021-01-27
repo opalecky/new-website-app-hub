@@ -277,9 +277,10 @@ export default class App {
 			this.debugOptions = debugOptions;
 		}
 		if ( debugOptions.statsGraph && ( level === 'stats' || level.includes( 'stats' ) ) ) {
+			console.log(window.innerWidth, window.devicePixelRatio);
 			let canvasSize = {
-				w : window.innerWidth * ( window.devicePixelRatio || 1 ),
-				h : window.innerHeight * ( window.devicePixelRatio || 1 ),
+				w : window.innerWidth,
+				h : window.innerHeight,
 			}
 			this.debugStatsGraph = DOMHelper.newElement( 'canvas', {
 				props : [

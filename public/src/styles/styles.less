@@ -10,6 +10,10 @@ body {
   color: @white;
   font-family: @main-fonts;
 
+  @media (max-width: @table-landscape-width) and (orientation: portrait) {
+    font-size: 36px;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-weight: 300;
   }
@@ -146,29 +150,33 @@ body {
   left: 50%;
   top: 50%;
   transform: translate(-50%,-50%);
-  @media only screen and (max-width: @mobile-width) {
-    min-width: (@mobile-width/1.25)!important;
+  @media (max-width: @mobile-width) {
+    min-width: (@mobile-width/1.2)!important;
   }
-  @media only screen and (min-width: @mobile-width) and (max-width: @table-portrait-width) {
-    min-width: (@mobile-width/2)!important;
+  @media (max-width: @table-landscape-width) and (orientation: portrait) {
+    min-width: (@mobile-width/1.1)!important;
+    width: 80%;
   }
-  @media only screen and (min-width: @table-portrait-width) and (max-width: @table-landscape-width) {
-    min-width: (@table-portrait-width/2)!important;
+  @media (min-width: @mobile-width) and (max-width: @table-portrait-width) {
+    min-width: (@mobile-width/1.1)!important;
   }
-  @media only screen and (min-width: @table-landscape-width) and (max-width: @small-monitor-width) {
-    min-width: (@table-landscape-width/2)!important;
+  @media (min-width: @table-portrait-width) and (max-width: @table-landscape-width) {
+    min-width: (@table-portrait-width/1.5)!important;
   }
-  @media only screen and (min-width: @small-monitor-width) and (max-width: @medium-monitor-width) {
-    min-width: (@small-monitor-width/2)!important;
+  @media (min-width: @table-landscape-width) and (max-width: @small-monitor-width) {
+    min-width: (@table-landscape-width/1.5)!important;
   }
-  @media only screen and (min-width: @medium-monitor-width) and (max-width: @large-monitor-width) {
-    min-width: (@medium-monitor-width/2)!important;
+  @media (min-width: @small-monitor-width) and (max-width: @medium-monitor-width) {
+    min-width: (@small-monitor-width/1.5)!important;
   }
-  @media only screen and (min-width: @large-monitor-width) and (max-width: @extra-large-monitor-width) {
-    min-width: (@large-monitor-width/2)!important;
+  @media (min-width: @medium-monitor-width) and (max-width: @large-monitor-width) {
+    min-width: (@medium-monitor-width/1.5)!important;
   }
-  @media only screen and (min-width: @extra-large-monitor-width) {
-    min-width: (@extra-large-monitor-width/2)!important;
+  @media (min-width: @large-monitor-width) and (max-width: @extra-large-monitor-width) {
+    min-width: (@large-monitor-width/1.5)!important;
+  }
+  @media (min-width: @extra-large-monitor-width) {
+    min-width: (@extra-large-monitor-width/1.5)!important;
   }
 }
 
