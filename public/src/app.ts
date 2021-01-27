@@ -8,12 +8,12 @@ import App,{AppProps}             from './app/app';
 const settings = {
 	name: 'Adam Opalecký - website',
 	dev: {
-		on: true,
+		on: false,
 		maximumSavedFrametimes: 144
 	}, //todo: remove
 } as AppProps;
 
 // App Init
 export const app = new App(settings);
-app.debug('stats', {statsGraph: true});
+//app.debug('stats', {statsGraph: true});
 

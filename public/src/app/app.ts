@@ -1,6 +1,14 @@
-import _           from 'lodash';
-import DOMHelper   from "./lib/dom-helper";
-import Mathematics from './lib/mathematics';
+import _                                from 'lodash';
+import Background, { BACKGROUND_TYPES } from './components/background';
+import DOMHelper                        from "./lib/dom-helper";
+import Mathematics                      from './lib/mathematics';
+
+const english = require( './translations/english.json' );
+
+export enum AVAILABLE_LANGUAGES {
+	EN = 'english',
+	CZ = 'czech'
+}
 
 export type AppProps = {
 	name : string;
@@ -31,9 +39,9 @@ export type Timer = {
 	storedFrameTimes : number[],
 	frameTimeAverage : number,
 	FPS : number,
-	initialized: number,
-	lastUpdate: number,
-	inAppTime: number
+	initialized : number,
+	lastUpdate : number,
+	inAppTime : number
 }
 
 export type updateFunction = {
@@ -47,7 +55,7 @@ export type DebugOptions = {
 
 export default class App {
 
-	protected appTime : Timer = {
+	public appTime : Timer = {
 		uptime : 0,
 		seconds : 0,
 		updateCount : 0,
@@ -55,9 +63,9 @@ export default class App {
 		storedFrameTimes : [],
 		frameTimeAverage : 0,
 		FPS : 0,
-		initialized: Date.now(),
-		lastUpdate: Date.now(),
-		inAppTime: 0
+		initialized : Date.now(),
+		lastUpdate : Date.now(),
+		inAppTime : 0,
 	};
 	private updateFunctionStack : updateFunction[] = [];
 	private debugStatsGraph? : HTMLCanvasElement;
@@ -65,8 +73,13 @@ export default class App {
 	private debugStatsGraphAverages? : number[] = [];
 
 	private readonly maximumSavedFrameTimes;
+	private background : Background = new Background( { app : this } );
+
+	private translations = english;
+	private language : string = AVAILABLE_LANGUAGES.EN;
 
 	constructor ( props : AppProps ) {
+		this.translate();
 		this.update();
 		if ( props.dev && props.dev.on ) {
 			window[ 'app' ] = this;
@@ -106,9 +119,9 @@ export default class App {
 			storedFrameTimes : [ ...this.appTime.storedFrameTimes, lastFrame ],
 			frameTimeAverage : mean,
 			FPS : fps,
-			initialized: this.appTime.initialized,
-			lastUpdate: Date.now(),
-			inAppTime: Date.now() - this.appTime.initialized
+			initialized : this.appTime.initialized,
+			lastUpdate : Date.now(),
+			inAppTime : Date.now() - this.appTime.initialized,
 		};
 
 		if ( this.debugOptions?.statsGraph ) {
@@ -144,7 +157,7 @@ export default class App {
 			ctx.closePath();
 
 			if ( !( this.appTime.updateCount % 10 ) ) {
-				const maxSavedTimes = Math.round( this.maximumSavedFrameTimes / 2 );
+				const maxSavedTimes = Math.round( 2 * this.maximumSavedFrameTimes / 3 );
 				if ( this.debugStatsGraphAverages.length > maxSavedTimes ) {
 					this.debugStatsGraphAverages.shift();
 				}
@@ -253,6 +266,10 @@ export default class App {
 
 	public listen ( event : AppEvent, callback : ( eventData : AppEvent ) => any ) {
 
+	}
+
+	private translate () {
+		Array.from( $( "*[translate]" ) ).forEach( ( e ) => {$( e ).text( this.translations[ e.innerText ] )} );
 	}
 
 	public debug ( level : string | string[], debugOptions ? : DebugOptions ) {
