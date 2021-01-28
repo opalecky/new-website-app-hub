@@ -5,6 +5,7 @@ const MiniCssExtract = require('mini-css-extract-plugin');
 const CssMinimizer = require('css-minimizer-webpack-plugin');
 const webpack = require("webpack");
 const LodashModuleReplacementPlugin = require('lodash-webpack-plugin');
+const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
     mode: 'development',
@@ -16,7 +17,7 @@ module.exports = {
         host: 'localhost',
         port: '8080',
         inline: false,
-        compress: false
+        compress: true
     },
     plugins: [
         new HtmlWebpackPlugin({
@@ -33,6 +34,12 @@ module.exports = {
         new LodashModuleReplacementPlugin({
             'collections': true,
             'paths': true
+        }),
+        new CopyPlugin({
+            patterns: [
+                { from: "src/app/translations/", to: "lang/" },
+                { from: "src/translation.js", to: "translation.js" }
+            ],
         }),
     ],
     module: {
@@ -74,7 +81,8 @@ module.exports = {
                     {
                         loader: 'babel-loader',
                         options: {
-                            presets: ['env'],
+                            babelrc: false,
+                            presets: ["@babel/preset-env"],
                             plugins: ['@babel/proposal-class-properties']
                         }
                     },

@@ -167,7 +167,7 @@ export class ellipse extends Shape2D {
 		this.endAngle = endAngle / 180 * Math.PI;
 	}
 
-	draw () {
+	draw (draw_sides?:boolean, draw_center?:boolean) {
 		this.ctx.beginPath();
 		this.ctx.ellipse(
 			this.position.x,
@@ -187,6 +187,37 @@ export class ellipse extends Shape2D {
 			this.ctx.stroke();
 		}
 		this.ctx.closePath();
+
+		if(draw_center) {
+			const center = new Point( { position : this.position, fillColor : Color.COLORS.RED, canvas : this.canvas } );
+			center.draw(); // red
+		}
+		if(draw_sides) {
+			const t = new Point( {
+				                     position : { x : this.position.x, y : this.position.y - this.radiusY },
+				                     fillColor : Color.COLORS.GREEN,
+				                     canvas : this.canvas,
+			                     } );
+			const b = new Point( {
+				                     position : { x : this.position.x, y : this.position.y + this.radiusY },
+				                     fillColor : Color.COLORS.ORANGE,
+				                     canvas : this.canvas,
+			                     } );
+			const l = new Point( {
+				                     position : { x : this.position.x - this.radiusX, y : this.position.y },
+				                     fillColor : Color.COLORS.CYAN,
+				                     canvas : this.canvas,
+			                     } );
+			const r = new Point( {
+				                     position : { x : this.position.x + this.radiusX, y : this.position.y },
+				                     fillColor : Color.COLORS.MAGENTA,
+				                     canvas : this.canvas,
+			                     } );
+			t.draw(); // green
+			b.draw(); // orange
+			r.draw(); // cyan
+			l.draw(); // magenta
+		}
 	}
 
 	includesPoint ( point : Point ) {

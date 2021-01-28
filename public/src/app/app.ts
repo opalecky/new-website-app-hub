@@ -3,8 +3,6 @@ import Background, { BACKGROUND_TYPES } from './components/background';
 import DOMHelper                        from "./lib/dom-helper";
 import Mathematics                      from './lib/mathematics';
 
-const english = require( './translations/english.json' );
-
 export enum AVAILABLE_LANGUAGES {
 	EN = 'english',
 	CZ = 'czech'
@@ -16,19 +14,13 @@ export type AppProps = {
 };
 
 export type DevSettings = {
-	on : boolean,
-	maximumSavedFrametimes : number
+	on : boolean;
+	maximumSavedFrametimes : number;
 }
 
-
-export type AppEvent = {
-	name : string,
-	attributes : any
-}
-
-export const DEFAULT_APPEVENT_VALUES = {
-	name : '',
-	attributes : null,
+export type AppEventListener = {
+	type : string;
+	callBack : ( ...props : any[] ) => void;
 }
 
 export type Timer = {
@@ -75,11 +67,18 @@ export default class App {
 	private readonly maximumSavedFrameTimes;
 	private background : Background = new Background( { app : this } );
 
-	private translations = english;
+	private translations;
 	private language : string = AVAILABLE_LANGUAGES.EN;
 
+	private eventListeners : AppEventListener[] = [];
+
 	constructor ( props : AppProps ) {
-		this.translate();
+
+		$.get('./lang/english.json', (data)=>{
+			this.translations = data;
+			this.translate();
+		});
+
 		this.update();
 		if ( props.dev && props.dev.on ) {
 			window[ 'app' ] = this;
@@ -99,12 +98,12 @@ export default class App {
 			func.f( ...func.props );
 		}
 		window.requestAnimationFrame( async () => {
-			this.diagnosticsUpdate( await this.update() );
+			this.timeUpdate( await this.update() );
 		} );
 		return performance.now();
 	}
 
-	private diagnosticsUpdate ( newTime : number ) {
+	private timeUpdate ( newTime : number ) {
 		const lastFrame = newTime - this.appTime.uptime;
 		const mean = _.mean( this.appTime.storedFrameTimes );
 		const fps = 1000 / ( this.appTime.frameTimeAverage || 1 );
@@ -123,123 +122,126 @@ export default class App {
 			lastUpdate : Date.now(),
 			inAppTime : Date.now() - this.appTime.initialized,
 		};
-
 		if ( this.debugOptions?.statsGraph ) {
-			const ctx = this.debugStatsGraph.getContext( '2d' );
-			ctx.clearRect( this.debugStatsGraph.width / 2, 0, this.debugStatsGraph.width / 2, this.debugStatsGraph.height );
+			this.$$drawDiagnosticData();
+		}
+	}
 
-			// FPS counter
-			ctx.beginPath();
-			ctx.fillStyle = "#000";
-			ctx.font = "16px Roboto";
-			ctx.fillText( `FPS: ${ this.appTime.FPS.toFixed( 3 ) }`, this.debugStatsGraph.width / 2, this.debugStatsGraph.height / 3, this.debugStatsGraph.width / 10 )
-			ctx.closePath();
+	private $$drawDiagnosticData () {
+		const ctx = this.debugStatsGraph.getContext( '2d' );
+		ctx.clearRect( this.debugStatsGraph.width / 2, 0, this.debugStatsGraph.width / 2, this.debugStatsGraph.height );
 
-			// Average frame time counter
-			ctx.beginPath();
-			ctx.fillStyle = "#000";
-			ctx.font = "16px Roboto";
-			ctx.fillText( `AFT: ${ this.appTime.frameTimeAverage.toFixed( 3 ) }`, this.debugStatsGraph.width / 2, 2 * this.debugStatsGraph.height / 3, this.debugStatsGraph.width / 10 )
-			ctx.closePath();
+		// FPS counter
+		ctx.beginPath();
+		ctx.fillStyle = "#000";
+		ctx.font = "16px Roboto";
+		ctx.fillText( `FPS: ${ this.appTime.FPS.toFixed( 3 ) }`, this.debugStatsGraph.width / 2, this.debugStatsGraph.height / 3, this.debugStatsGraph.width / 10 )
+		ctx.closePath();
 
+		// Average frame time counter
+		ctx.beginPath();
+		ctx.fillStyle = "#000";
+		ctx.font = "16px Roboto";
+		ctx.fillText( `AFT: ${ this.appTime.frameTimeAverage.toFixed( 3 ) }`, this.debugStatsGraph.width / 2, 2 * this.debugStatsGraph.height / 3, this.debugStatsGraph.width / 10 )
+		ctx.closePath();
+
+		// Last frame time counter
+		ctx.beginPath();
+		ctx.fillStyle = "#000";
+		ctx.font = "16px Roboto";
+		ctx.fillText( `Total Frames: ${ this.appTime.updateCount }`, this.debugStatsGraph.width / 2 + this.debugStatsGraph.width / 15, 2 * this.debugStatsGraph.height / 3, this.debugStatsGraph.width / 4 )
+		ctx.closePath();
+
+		// Last frame time counter
+		ctx.beginPath();
+		ctx.fillStyle = "#000";
+		ctx.font = "16px Roboto";
+		ctx.fillText( `Frame time: ${ this.appTime.lastFrameTime.toFixed( 3 ) }`, this.debugStatsGraph.width / 2 + this.debugStatsGraph.width / 15, this.debugStatsGraph.height / 3, this.debugStatsGraph.width / 10 )
+		ctx.closePath();
+
+		if ( !( this.appTime.updateCount % 10 ) ) {
+			const maxSavedTimes = Math.round( 2 * this.maximumSavedFrameTimes / 3 );
+			if ( this.debugStatsGraphAverages.length > maxSavedTimes ) {
+				this.debugStatsGraphAverages.shift();
+			}
+			this.debugStatsGraphAverages.push( this.appTime.frameTimeAverage );
+			ctx.clearRect( 0, 0, this.debugStatsGraph.width / 2 - 1, this.debugStatsGraph.height );
 			// Last frame time counter
+			const deviation = 0.02;
+			const max = _.max( this.debugStatsGraphAverages ),
+				min = _.min( this.debugStatsGraphAverages );
+			const statistics = {
+				spread : max - min,
+				maxSpread : max * ( 1 + deviation / 2 ) - min * ( 1 - deviation / 2 ),
+				averageValue : _.mean( this.debugStatsGraphAverages ),
+				scale : {
+					max : max * ( 1 + deviation / 2 ),
+					min : min * ( 1 - deviation / 2 ),
+				},
+			};
+			// max
 			ctx.beginPath();
 			ctx.fillStyle = "#000";
-			ctx.font = "16px Roboto";
-			ctx.fillText( `Total Frames: ${ this.appTime.updateCount }`, this.debugStatsGraph.width / 2 + this.debugStatsGraph.width / 15, 2 * this.debugStatsGraph.height / 3, this.debugStatsGraph.width / 4 )
+			ctx.font = "12px Roboto";
+			ctx.fillText( `${ statistics.scale.max.toFixed( 3 ) }ms`, this.debugStatsGraph.width / 20, this.debugStatsGraph.height / 5, this.debugStatsGraph.width / 20 );
 			ctx.closePath();
 
-			// Last frame time counter
+			// min
 			ctx.beginPath();
 			ctx.fillStyle = "#000";
-			ctx.font = "16px Roboto";
-			ctx.fillText( `Frame time: ${ this.appTime.lastFrameTime.toFixed( 3 ) }`, this.debugStatsGraph.width / 2 + this.debugStatsGraph.width / 15, this.debugStatsGraph.height / 3, this.debugStatsGraph.width / 10 )
+			ctx.font = "12px Roboto";
+			ctx.fillText( `${ statistics.scale.min.toFixed( 3 ) }ms`, this.debugStatsGraph.width / 20, 4 * this.debugStatsGraph.height / 5, this.debugStatsGraph.width / 20 );
 			ctx.closePath();
 
-			if ( !( this.appTime.updateCount % 10 ) ) {
-				const maxSavedTimes = Math.round( 2 * this.maximumSavedFrameTimes / 3 );
-				if ( this.debugStatsGraphAverages.length > maxSavedTimes ) {
-					this.debugStatsGraphAverages.shift();
-				}
-				this.debugStatsGraphAverages.push( this.appTime.frameTimeAverage );
-				ctx.clearRect( 0, 0, this.debugStatsGraph.width / 2 - 1, this.debugStatsGraph.height );
-				// Last frame time counter
-				const deviation = 0.02;
-				const max = _.max( this.debugStatsGraphAverages ),
-					min = _.min( this.debugStatsGraphAverages );
-				const statistics = {
-					spread : max - min,
-					maxSpread : max * ( 1 + deviation / 2 ) - min * ( 1 - deviation / 2 ),
-					averageValue : _.mean( this.debugStatsGraphAverages ),
-					scale : {
-						max : max * ( 1 + deviation / 2 ),
-						min : min * ( 1 - deviation / 2 ),
-					},
-				};
-				// max
-				ctx.beginPath();
-				ctx.fillStyle = "#000";
-				ctx.font = "12px Roboto";
-				ctx.fillText( `${ statistics.scale.max.toFixed( 3 ) }ms`, this.debugStatsGraph.width / 20, this.debugStatsGraph.height / 5, this.debugStatsGraph.width / 20 );
-				ctx.closePath();
+			// graph border
+			ctx.beginPath();
+			ctx.strokeStyle = "#000";
+			ctx.strokeRect( this.debugStatsGraph.width / 10, this.debugStatsGraph.height / 5,
+			                this.debugStatsGraph.width / 3, 3 * this.debugStatsGraph.height / 5 );
+			ctx.closePath();
 
-				// min
-				ctx.beginPath();
-				ctx.fillStyle = "#000";
-				ctx.font = "12px Roboto";
-				ctx.fillText( `${ statistics.scale.min.toFixed( 3 ) }ms`, this.debugStatsGraph.width / 20, 4 * this.debugStatsGraph.height / 5, this.debugStatsGraph.width / 20 );
-				ctx.closePath();
+			// average value
+			ctx.beginPath()
+			ctx.strokeStyle = "#666";
+			ctx.moveTo( this.debugStatsGraph.width / 10, ( this.debugStatsGraph.height / 5 + 4 * this.debugStatsGraph.height / 5 ) / 2 );
+			ctx.lineTo( this.debugStatsGraph.width / 10 + this.debugStatsGraph.width / 3, ( this.debugStatsGraph.height / 5 + 4 * this.debugStatsGraph.height / 5 ) / 2 );
+			ctx.stroke();
+			ctx.closePath();
 
-				// graph border
-				ctx.beginPath();
-				ctx.strokeStyle = "#000";
-				ctx.strokeRect( this.debugStatsGraph.width / 10, this.debugStatsGraph.height / 5,
-				                this.debugStatsGraph.width / 3, 3 * this.debugStatsGraph.height / 5 );
-				ctx.closePath();
+			// average value marker
+			ctx.beginPath();
+			ctx.fillStyle = "#000";
+			ctx.fillText( `${ _.mean( [ statistics.scale.min, statistics.scale.max ] ).toFixed( 3 ) }ms`, this.debugStatsGraph.width / 20, ( this.debugStatsGraph.height / 5 + 4 * this.debugStatsGraph.height / 5 ) / 2, this.debugStatsGraph.width / 20 );
+			ctx.closePath();
 
-				// average value
-				ctx.beginPath()
-				ctx.strokeStyle = "#666";
-				ctx.moveTo( this.debugStatsGraph.width / 10, ( this.debugStatsGraph.height / 5 + 4 * this.debugStatsGraph.height / 5 ) / 2 );
-				ctx.lineTo( this.debugStatsGraph.width / 10 + this.debugStatsGraph.width / 3, ( this.debugStatsGraph.height / 5 + 4 * this.debugStatsGraph.height / 5 ) / 2 );
-				ctx.stroke();
-				ctx.closePath();
+			const minH = this.debugStatsGraph.height / 5,
+				maxH = 3 * ( this.debugStatsGraph.height / 5 );
+			const hSpread = maxH - minH;
+			const minW = this.debugStatsGraph.width / 10,
+				maxW = minW + this.debugStatsGraph.width / 3;
+			const wSpread = maxW - minW;
 
-				// average value marker
-				ctx.beginPath();
-				ctx.fillStyle = "#000";
-				ctx.fillText( `${ _.mean( [ statistics.scale.min, statistics.scale.max ] ).toFixed( 3 ) }ms`, this.debugStatsGraph.width / 20, ( this.debugStatsGraph.height / 5 + 4 * this.debugStatsGraph.height / 5 ) / 2, this.debugStatsGraph.width / 20 );
-				ctx.closePath();
-
-				const minH = this.debugStatsGraph.height / 5,
-					maxH = 3 * ( this.debugStatsGraph.height / 5 );
-				const hSpread = maxH - minH;
-				const minW = this.debugStatsGraph.width / 10,
-					maxW = minW + this.debugStatsGraph.width / 3;
-				const wSpread = maxW - minW;
-
-				const getHeight = ( i ) => {
-					const mapped = Mathematics.linearMapping( this.debugStatsGraphAverages[ i ], statistics.scale.min, statistics.scale.max );
-					return mapped * hSpread;
-				}
-
-				for ( let i in this.debugStatsGraphAverages ) {
-					ctx.beginPath();
-					const height = getHeight( i );
-					ctx.fillStyle = "#000";
-					ctx.ellipse( maxW - ( Number( i ) * wSpread / maxSavedTimes ), maxH - ( height - minH / 2 ), 1, 1, 0, 0, 2 * Math.PI );
-					ctx.fill();
-					if ( i ) {
-						ctx.strokeStyle = "#000";
-						ctx.moveTo( maxW - ( ( Number( i ) - 1 ) * wSpread / maxSavedTimes ), maxH - ( getHeight( Number( i ) - 1 ) - minH / 2 ) )
-						ctx.lineTo( maxW - ( Number( i ) * wSpread / maxSavedTimes ), maxH - ( height - minH / 2 ) );
-						ctx.stroke();
-					}
-					ctx.closePath();
-				}
+			const getHeight = ( i ) => {
+				const mapped = Mathematics.linearMapping( this.debugStatsGraphAverages[ i ], statistics.scale.min, statistics.scale.max );
+				return mapped * hSpread;
 			}
 
+			for ( let i in this.debugStatsGraphAverages ) {
+				ctx.beginPath();
+				const height = getHeight( i );
+				ctx.fillStyle = "#000";
+				ctx.ellipse( maxW - ( Number( i ) * wSpread / maxSavedTimes ), maxH - ( height - minH / 2 ), 1, 1, 0, 0, 2 * Math.PI );
+				ctx.fill();
+				if ( i ) {
+					ctx.strokeStyle = "#000";
+					ctx.moveTo( maxW - ( ( Number( i ) - 1 ) * wSpread / maxSavedTimes ), maxH - ( getHeight( Number( i ) - 1 ) - minH / 2 ) )
+					ctx.lineTo( maxW - ( Number( i ) * wSpread / maxSavedTimes ), maxH - ( height - minH / 2 ) );
+					ctx.stroke();
+				}
+				ctx.closePath();
+			}
 		}
+
 	}
 
 	public registerUpdateFunction ( functionPointer : ( ...props : any[] ) => any, ...props : any[] ) {
@@ -249,27 +251,30 @@ export default class App {
 		                               } );
 	}
 
-	public reactToEvent ( event : AppEvent ) {
-
+	public reactToEvent ( event : string, props : any ) {
+		this.eventListeners.forEach( e => {
+			if ( e.type === event ) {
+				e.callBack(props)
+			}
+		} )
 	}
 
-	public emitEvent ( event : AppEvent | string ) {
-		let caller;
-		if ( _.isString( event ) ) {
-			caller = _.cloneDeep( DEFAULT_APPEVENT_VALUES );
-			caller.name = event;
-		} else {
-			caller = event;
-		}
-		this.reactToEvent( caller );
+	public emitEvent ( event : string, props : any ) {
+		this.reactToEvent( event, props );
 	}
 
-	public listen ( event : AppEvent, callback : ( eventData : AppEvent ) => any ) {
-
+	public listen ( event : string, callback : ( ...props : any[] ) => any ) {
+		this.eventListeners.push( {
+			                          type : event,
+			                          callBack : callback,
+		                          } );
+		return this.eventListeners;
 	}
 
 	private translate () {
-		Array.from( $( "*[translate]" ) ).forEach( ( e ) => {$( e ).text( this.translations[ e.innerText ] )} );
+		Array.from( $( "*[translate]" ) ).forEach( ( e ) => {
+			$( e ).text( this.translations[ $( e ).attr( 'translate' ) ] )
+		} );
 	}
 
 	public debug ( level : string | string[], debugOptions ? : DebugOptions ) {
@@ -277,7 +282,6 @@ export default class App {
 			this.debugOptions = debugOptions;
 		}
 		if ( debugOptions.statsGraph && ( level === 'stats' || level.includes( 'stats' ) ) ) {
-			console.log(window.innerWidth, window.devicePixelRatio);
 			let canvasSize = {
 				w : window.innerWidth,
 				h : window.innerHeight,

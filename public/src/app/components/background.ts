@@ -1,15 +1,16 @@
-import _        from "lodash";
+import _ from "lodash";
+import Mathematics from "../lib/mathematics";
 import type App from "../app";
 
 import Color from '../lib/color';
 
-import { Circle, Shape2D } from '../lib/geometry';
+import { Circle, Shape2D, Point } from '../lib/geometry';
 
 const canvas = $( "#background canvas" )[ 0 ] as HTMLCanvasElement;
 const ctx = canvas.getContext( '2d' );
-$(window).on('resize', ()=>{
-	$(canvas).attr('width', window.innerWidth).attr('height', window.innerHeight);
-});
+$( window ).on( 'resize', () => {
+	$( canvas ).attr( 'width', window.innerWidth ).attr( 'height', window.innerHeight );
+} );
 
 export enum BACKGROUND_TYPES {
 	BUBBLES,
@@ -122,22 +123,43 @@ export default class Background {
 		this.clearCanvas();
 		this.particles.forEach( e => {
 			const temp = {
-				x: e.shape.position.x + e.movement[ 0 ] * this.app.appTime.lastFrameTime / 1000,
-				y: e.shape.position.y + e.movement[ 1 ] * this.app.appTime.lastFrameTime / 1000,
-				z: e.shape.position.z + e.movement[ 2 ] * this.app.appTime.lastFrameTime / 1000
+				x : e.shape.position.x + e.movement[ 0 ] * this.app.appTime.lastFrameTime / 1000,
+				y : e.shape.position.y + e.movement[ 1 ] * this.app.appTime.lastFrameTime / 1000,
+				z : e.shape.position.z + e.movement[ 2 ] * this.app.appTime.lastFrameTime / 1000,
 			}
-			if ( temp.x - e.shape.radiusX / 2 <= 0 || temp.x + e.shape.radiusX / 2 >= canvas.width ) {
-				e.movement[ 0 ] *= -1;
-				temp.x = e.shape.position.x + e.movement[ 0 ] * this.app.appTime.lastFrameTime / 1000;
-			}
-			if ( temp.y - e.shape.radiusY / 2 <= 0 || temp.y + e.shape.radiusY / 2 >= canvas.height ) {
+
+			const particleHits = {
+				l : e.shape.position.x <= e.shape.radiusX,
+				r : e.shape.position.x >= canvas.width - e.shape.radiusX,
+				t : e.shape.position.y <= e.shape.radiusX,
+				b : e.shape.position.y >= canvas.height - e.shape.radiusY,
+			};
+
+			if ( particleHits.t ) {
+				temp.y = e.shape.radiusY + 1;
 				e.movement[ 1 ] *= -1;
-				temp.y = e.shape.position.y + e.movement[ 0 ] * this.app.appTime.lastFrameTime / 1000;
 			}
+
+			if ( particleHits.l ) {
+				e.movement[ 0 ] *= -1;
+				temp.x = e.shape.radiusX + 1;
+			}
+
+			if ( particleHits.b ) {
+				e.movement[ 1 ] *= -1;
+				temp.y = canvas.height - e.shape.radiusY - 1;
+			}
+
+			if ( particleHits.r ) {
+				e.movement[ 0 ] *= -1;
+				temp.x = canvas.width - e.shape.radiusX - 1;
+			}
+
 			e.shape.position.x = temp.x;
 			e.shape.position.y = temp.y;
-			e.shape.position.z = temp.z
-			e.shape.draw()
+			e.shape.position.z = temp.z;
+
+			e.shape.draw();
 		} );
 	}
 
