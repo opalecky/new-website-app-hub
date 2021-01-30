@@ -22,7 +22,11 @@
         var language_options = document.querySelectorAll('.language-selector a');
         for (var i in language_options) {
             if (language_options[i] instanceof HTMLElement) {
-                language_options[i].setAttribute('href', (window.location.protocol + '\/\/' + window.location.host + '\/?lang=' + language_options[i].getAttribute('data-value')));
+                if(language_options[i].getAttribute('data-value') === lang) {
+                    language_options[i].setAttribute('style', 'display: none');
+                } else {
+                    language_options[i].setAttribute('href', (window.location.protocol + '\/\/' + window.location.host + '\/?lang=' + language_options[i].getAttribute('data-value')));
+                }
             }
         }
     }

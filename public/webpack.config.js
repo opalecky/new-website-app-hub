@@ -17,7 +17,7 @@ module.exports = {
         host: 'localhost',
         port: '8080',
         inline: false,
-        compress: false,
+        compress: true,
         hot: true
     },
     plugins: [

@@ -70,7 +70,7 @@ export default class App {
 	private background : Background;
 
 	private translations;
-	private language : string = AVAILABLE_LANGUAGES.EN;
+	private language : string = AVAILABLE_LANGUAGES.CZ;
 
 	private events = {};
 
@@ -80,8 +80,24 @@ export default class App {
 			this.translate();
 		} );
 
-		$( '.language-selector a' ).on( 'click', ( e ) => {
+		const lang_opt = $( '.language-selector a' );
+
+		for ( let e of Array.from(lang_opt)) {
+			if($(e).data('value') === this.language) {
+				$(e).hide();
+			}
+		}
+
+		lang_opt.on( 'click', ( e ) => {
 			this.changeLanguage( $( e.target ).data( 'value' ) );
+
+			for ( let e of Array.from(lang_opt)) {
+				if($(e).data('value') === this.language) {
+					$(e).hide();
+				} else {
+					$(e).show();
+				}
+			}
 		} );
 
 		this.update();
