@@ -1,5 +1,12 @@
 // styles
 import './styles/styles.less';
+import {BACKGROUND_TYPES} from "./app/components/background";
+
+import { library, dom } from "@fortawesome/fontawesome-svg-core";
+import { faCog }       from "@fortawesome/free-solid-svg-icons";
+
+library.add(faCog);
+dom.watch();
 
 // App imports
 import App,{AppProps}             from './app/app';
@@ -8,12 +15,16 @@ import App,{AppProps}             from './app/app';
 const settings = {
 	name: 'Adam Opalecký - website',
 	dev: {
-		on: false,
+		on: true,
 		maximumSavedFrametimes: 144
-	}, //todo: remove
+	},
 } as AppProps;
 
 // App Init
 export const app = new App(settings);
-//app.debug('stats', {statsGraph: true});
+app.setBackground(BACKGROUND_TYPES.BUBBLES);
+app.debug('stats', {statsGraph: false});
 
+if((module as any).hot) {
+	(module as any).hot.accept();
+}

@@ -21,6 +21,14 @@ body {
     font-weight: 300;
   }
 
+  nav {
+    .language-selector {
+      position: absolute;
+      right: 10%;
+      top: 5%;
+    }
+  }
+
   div {
     &#background {
       position: fixed;
@@ -72,9 +80,11 @@ body {
       font-size: 2.5em;
       text-align: center;
     }
+
     h2 {
       font-size: 1.5em;
     }
+
     p {
       font-weight: 300;
     }
@@ -99,6 +109,7 @@ body {
           text-align: left !important;
           float: left;
         }
+
         a {
           margin-left: 20px;
           float: right;
@@ -162,34 +173,34 @@ body {
   width: 50%;
   left: 50%;
   top: 50%;
-  transform: translate(-50%,-50%);
+  transform: translate(-50%, -50%);
   @media (max-width: @mobile-width) {
-    min-width: (@mobile-width/1.2)!important;
+    min-width: (@mobile-width/1.2) !important;
   }
   @media (max-width: @table-landscape-width) and (orientation: portrait) {
-    min-width: (@mobile-width/1.1)!important;
+    min-width: (@mobile-width/1.1) !important;
     width: 80%;
   }
   @media (min-width: @mobile-width) and (max-width: @table-portrait-width) {
-    min-width: (@mobile-width/1.1)!important;
+    min-width: (@mobile-width/1.1) !important;
   }
   @media (min-width: @table-portrait-width) and (max-width: @table-landscape-width) {
-    min-width: (@table-portrait-width/1.5)!important;
+    min-width: (@table-portrait-width/1.5) !important;
   }
   @media (min-width: @table-landscape-width) and (max-width: @small-monitor-width) {
-    min-width: (@table-landscape-width/1.5)!important;
+    min-width: (@table-landscape-width/1.5) !important;
   }
   @media (min-width: @small-monitor-width) and (max-width: @medium-monitor-width) {
-    min-width: (@small-monitor-width/1.5)!important;
+    min-width: (@small-monitor-width/1.5) !important;
   }
   @media (min-width: @medium-monitor-width) and (max-width: @large-monitor-width) {
-    min-width: (@medium-monitor-width/1.5)!important;
+    min-width: (@medium-monitor-width/1.5) !important;
   }
   @media (min-width: @large-monitor-width) and (max-width: @extra-large-monitor-width) {
-    min-width: (@large-monitor-width/1.5)!important;
+    min-width: (@large-monitor-width/1.5) !important;
   }
   @media (min-width: @extra-large-monitor-width) {
-    min-width: (@extra-large-monitor-width/1.5)!important;
+    min-width: (@extra-large-monitor-width/1.5) !important;
   }
 }
 

@@ -1,7 +1,9 @@
 import _                                from 'lodash';
-import Background, { BACKGROUND_TYPES } from './components/background';
+import Background, { BACKGROUND_TYPES } from "./components/background";
 import DOMHelper                        from "./lib/dom-helper";
 import Mathematics                      from './lib/mathematics';
+//@ts-ignore
+import GlobalTranslations               from './translations/global.json';
 
 export enum AVAILABLE_LANGUAGES {
 	EN = 'english',
@@ -65,19 +67,22 @@ export default class App {
 	private debugStatsGraphAverages? : number[] = [];
 
 	private readonly maximumSavedFrameTimes;
-	private background : Background = new Background( { app : this } );
+	private background : Background;
 
 	private translations;
 	private language : string = AVAILABLE_LANGUAGES.EN;
 
-	private eventListeners : AppEventListener[] = [];
+	private events = {};
 
 	constructor ( props : AppProps ) {
-
-		$.get('./lang/english.json', (data)=>{
-			this.translations = data;
+		$.get( './lang/english.json', ( data ) => {
+			this.translations = _.merge(data, GlobalTranslations);
 			this.translate();
-		});
+		} );
+
+		$( '.language-selector a' ).on( 'click', ( e ) => {
+			this.changeLanguage( $( e.target ).data( 'value' ) );
+		} );
 
 		this.update();
 		if ( props.dev && props.dev.on ) {
@@ -85,6 +90,12 @@ export default class App {
 			this.maximumSavedFrameTimes = props.dev.maximumSavedFrametimes
 		} else {
 			this.maximumSavedFrameTimes = 60;
+		}
+	}
+
+	setBackground ( type : any ) {
+		if ( BACKGROUND_TYPES.hasOwnProperty( type ) ) {
+			this.background = new Background( { type : type, app : this } )
 		}
 	}
 
@@ -251,29 +262,17 @@ export default class App {
 		                               } );
 	}
 
-	public reactToEvent ( event : string, props : any ) {
-		this.eventListeners.forEach( e => {
-			if ( e.type === event ) {
-				e.callBack(props)
-			}
-		} )
+	public changeLanguage ( newLang : string ) {
+		this.language = newLang;
+		$.get( `./lang/${this.language}.json`, ( data ) => {
+			this.translations = _.merge(data, GlobalTranslations);
+			this.translate();
+		} );
 	}
 
-	public emitEvent ( event : string, props : any ) {
-		this.reactToEvent( event, props );
-	}
-
-	public listen ( event : string, callback : ( ...props : any[] ) => any ) {
-		this.eventListeners.push( {
-			                          type : event,
-			                          callBack : callback,
-		                          } );
-		return this.eventListeners;
-	}
-
-	private translate () {
+	public translate () {
 		Array.from( $( "*[translate]" ) ).forEach( ( e ) => {
-			$( e ).text( this.translations[ $( e ).attr( 'translate' ) ] )
+			$( e ).text( this.translations[ $( e ).attr( 'translate' ) ] );
 		} );
 	}
 
@@ -311,4 +310,8 @@ export default class App {
 			$( document.body ).append( this.debugStatsGraph );
 		}
 	}
+}
+
+if ( ( module as any ).hot ) {
+	( module as any ).hot.accept();
 }
