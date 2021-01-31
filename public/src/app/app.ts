@@ -294,7 +294,7 @@ export default class App {
 	}
 
 	public static registerService(service:AppServiceAbstract) {
-		App.ServiceList.set(service.calleré, service);
+		App.ServiceList.set(service.caller, service);
 	}
 
 	public static getService(name:string):AppServiceAbstract {
