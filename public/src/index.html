@@ -3,18 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <title translate="title_homepage"></title>
+    <script src="/translation.js" defer></script>
 </head>
 <body>
-    <div id="background">
-        <canvas>
-        </canvas>
-    </div>
+    <background></background>
     <nav>
         <div class="language-selector">
             <a href="javascript:void(0)" translate="language_name_english" data-value="english"></a>
             <a href="javascript:void(0)" translate="language_name_czech" data-value="czech"></a>
         </div>
     </nav>
+
+    <todo-list title="Todo list for my web">
+        <ul>
+            <li class="priority-title"><h4>Priority 0 (highest)</h4></li>
+            <li>Stylize this list</li>
+            <li>Prepare visual style for the content</li>
+            <li class="priority-title"><h4>Priority 1</h4></li>
+            <li>App based event listeners (Reactor pattern)</li>
+            <li>Add content</li>
+            <li>Change webpack settings to actually optimize the site for IE 11</li>
+            <li class="priority-title"><h4>Priority 2</h4></li>
+            <li>App center</li>
+            <li class="priority-title"><h4>Priority 3 (lowest)</h4></li>
+            <li>Add more background animations</li>
+        </ul>
+    </todo-list>
+
     <main class="container">
         <h1 translate="my_name"></h1>
         <h2 translate="backend_is_being_reworked"></h2>
@@ -31,6 +46,5 @@
             </li>
         </ul>
     </main>
-    <script src="/translation.js"></script>
 </body>
 </html>

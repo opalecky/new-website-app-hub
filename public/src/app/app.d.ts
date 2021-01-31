@@ -1,6 +1,7 @@
 export declare type AppProps = {
     name: string;
 };
+
 export declare type Timer = {
     uptime: number;
     seconds: number;

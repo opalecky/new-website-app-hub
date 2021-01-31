@@ -1,10 +1,21 @@
-import _                                from 'lodash';
+import AppServiceAbstract               from "./services/app-service.abstract";
+import ComponentAbstract                from "./components/component.abstract";
 import Background, { BACKGROUND_TYPES } from "./components/background";
 import DOMHelper                        from "./lib/dom-helper";
 import Mathematics                      from './lib/mathematics';
 //@ts-ignore
 import GlobalTranslations               from './translations/global.json';
 
+import _ from 'lodash';
+
+
+/**
+ * todo: static ComponentList, static ServiceList
+ *      Components get accessed by modules from ComponentList
+ *      Services get access by Components and App from ServiceList
+ *      Modules are Bundles of code that can be run by eval function
+ *      The fact that module has been open shall get saved into app for reuse later instead of loading again
+ */
 export enum AVAILABLE_LANGUAGES {
 	EN = 'english',
 	CZ = 'czech'
@@ -18,11 +29,6 @@ export type AppProps = {
 export type DevSettings = {
 	on : boolean;
 	maximumSavedFrametimes : number;
-}
-
-export type AppEventListener = {
-	type : string;
-	callBack : ( ...props : any[] ) => void;
 }
 
 export type Timer = {
@@ -47,8 +53,9 @@ export type DebugOptions = {
 	statsGraph : boolean;
 }
 
-export default class App {
 
+
+export default class App {
 	public appTime : Timer = {
 		uptime : 0,
 		seconds : 0,
@@ -70,32 +77,33 @@ export default class App {
 	private background : Background;
 
 	private translations;
-	private language : string = AVAILABLE_LANGUAGES.CZ;
+	private language : string = AVAILABLE_LANGUAGES.EN;
 
-	private events = {};
+	public static ServiceList: Map<string, AppServiceAbstract> = new Map();
+	public static ComponentList: Map<string, ComponentAbstract> = new Map();
 
 	constructor ( props : AppProps ) {
-		$.get( './lang/english.json', ( data ) => {
-			this.translations = _.merge(data, GlobalTranslations);
+		$.get( `./lang/${ this.language }.json`, ( data ) => {
+			this.translations = _.merge( data, GlobalTranslations );
 			this.translate();
 		} );
 
 		const lang_opt = $( '.language-selector a' );
 
-		for ( let e of Array.from(lang_opt)) {
-			if($(e).data('value') === this.language) {
-				$(e).hide();
+		for ( let e of Array.from( lang_opt ) ) {
+			if ( $( e ).data( 'value' ) === this.language ) {
+				$( e ).hide();
 			}
 		}
 
 		lang_opt.on( 'click', ( e ) => {
 			this.changeLanguage( $( e.target ).data( 'value' ) );
 
-			for ( let e of Array.from(lang_opt)) {
-				if($(e).data('value') === this.language) {
-					$(e).hide();
+			for ( let e of Array.from( lang_opt ) ) {
+				if ( $( e ).data( 'value' ) === this.language ) {
+					$( e ).hide();
 				} else {
-					$(e).show();
+					$( e ).show();
 				}
 			}
 		} );
@@ -111,7 +119,10 @@ export default class App {
 
 	setBackground ( type : any ) {
 		if ( BACKGROUND_TYPES.hasOwnProperty( type ) ) {
-			this.background = new Background( { type : type, app : this } )
+			this.background = new Background( {
+				                                  type : type,
+				                                  app : this,
+			                                  } )
 		}
 	}
 
@@ -278,10 +289,25 @@ export default class App {
 		                               } );
 	}
 
+	public static registerComponent(component:ComponentAbstract) {
+		App.ComponentList.set(component.selector, component);
+	}
+
+	public static registerService(service:AppServiceAbstract) {
+		App.ServiceList.set(service.calleré, service);
+	}
+
+	public static getService(name:string):AppServiceAbstract {
+		return App.ServiceList.get(name);
+	}
+	public static getComponent(name:string):ComponentAbstract {
+		return App.ComponentList.get(name);
+	}
+
 	public changeLanguage ( newLang : string ) {
 		this.language = newLang;
-		$.get( `./lang/${this.language}.json`, ( data ) => {
-			this.translations = _.merge(data, GlobalTranslations);
+		$.get( `./lang/${ this.language }.json`, ( data ) => {
+			this.translations = _.merge( data, GlobalTranslations );
 			this.translate();
 		} );
 	}

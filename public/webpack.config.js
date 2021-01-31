@@ -21,16 +21,17 @@ module.exports = {
         hot: true
     },
     plugins: [
+        new webpack.ProvidePlugin({
+            _: 'lodash',
+            $: 'jquery',
+            jQuery: 'jquery'
+        }),
         new HtmlWebpackPlugin({
             template: './src/index.html',
             favicon: "./src/img/logo-color.svg"
         }),
         new MiniCssExtract({
             filename: 'style.css'
-        }),
-        new webpack.ProvidePlugin({
-            $: 'jquery',
-            jQuery: 'jquery'
         }),
         new LodashModuleReplacementPlugin({
             'collections': true,

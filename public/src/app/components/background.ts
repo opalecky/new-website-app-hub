@@ -6,7 +6,10 @@ import Color from '../lib/color';
 
 import { Circle, Shape2D, Point } from '../lib/geometry';
 
-const canvas = $( "#background canvas" )[ 0 ] as HTMLCanvasElement;
+const canvas = document.createElement('canvas') as HTMLCanvasElement;
+
+$('background').append(canvas);
+
 const ctx = canvas.getContext( '2d' );
 $( window ).on( 'resize', () => {
 	$( canvas ).attr( 'width', window.innerWidth ).attr( 'height', window.innerHeight );

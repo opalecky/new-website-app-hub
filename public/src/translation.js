@@ -2,7 +2,7 @@
  * Because explorer is dumb but I need the translations to be happening...
  */
 (function () {
-    var lang = "czech";
+    var lang = "english";
 
     var queryParams = window.location.href.split('?')[1];
     if (queryParams !== undefined && queryParams !== null) {
