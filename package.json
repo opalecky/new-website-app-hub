@@ -22,7 +22,7 @@
     "lodash": "^4.17.20",
     "mysql": "^2.18.1",
     "nodemailer": "^6.4.14",
-    "pug": "^3.0.0",
+    "pug": "^3.0.1",
     "uglify-js": "^3.12.5"
   },
   "devDependencies": {
